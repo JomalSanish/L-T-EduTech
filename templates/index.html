@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictive Analytics Dashboard</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fff8f5; /* Soft peach background */
+            color: #333; /* Dark gray text for readability */
+            text-align: center;
+        }
+    
+        h1, h2, h3 {
+            color: #ff6f61; /* Peachy orange for headings */
+        }
+    
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+    
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+    
+        h3 {
+            font-size: 1.2rem;
+            margin-top: 15px;
+        }
+    
+        p {
+            font-size: 1rem;
+            margin: 10px 0;
+        }
+    
+        button {
+            background-color: #ff6f61; /* Peach button background */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+    
+        button:hover {
+            background-color: #e35b4f; /* Darker peach on hover */
+            transform: translateY(-2px);
+        }
+    
+        button:active {
+            transform: translateY(0);
+        }
+    
+        input, select {
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+            width: 90%;
+            max-width: 300px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    
+        input[type="file"] {
+            background-color: #fff;
+            border: 1px solid #ff6f61;
+            color: #ff6f61;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+    
+        input[type="file"]:hover {
+            background-color: #ff6f61;
+            color: white;
+        }
+    
+        /* Form Containers */
+        .form-container {
+            display: none;
+            margin-top: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    
+        .form-container.active {
+            display: block;
+        }
+    
+        #result, #linear-result, #customer-type-result, #digit-result {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+    
+        /* Plots and Images */
+        #plot img, #kmeans-plot img, #digit-image img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+        }
+    
+        /* Header */
+        header {
+            background-color: #ff6f61;
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+    
+        header h1 {
+            margin: 0;
+        }
+    
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+    
+            button {
+                width: 100%;
+            }
+    
+            input, select {
+                width: 100%;
+            }
+        }
+    </style>    
+</head>
+<body>
+    <h1>Predictive Analytics Dashboard</h1>
+    <p>Select a model to proceed:</p>
+    <button onclick="showForm('linear')">Linear Regression</button>
+    <button onclick="showForm('kmeans')">K-Means Clustering</button>
+    <button onclick="showForm('digit')">Deep Learning</button>
+
+    <!-- Linear Regression Form -->
+    <div id="linear" class="form-container">
+        <h2>Linear Regression</h2>
+        <label for="years">Years of Experience:</label>
+        <input type="number" id="years" step="0.1" min="0" placeholder="e.g., 3.5">
+        <button onclick="predictLinear()">Predict Salary</button>
+        <h3 id="linear-result"></h3>
+        <div id="plot"></div>
+    </div>
+
+    <!-- K-Means Clustering Form -->
+    <div id="kmeans" class="form-container">
+        <h2>K-Means Clustering</h2>
+        <p>Clusters customers based on Annual Income and Spending Score.</p>
+        <label for="annual_income">Annual Income (k$):</label>
+        <input type="number" id="annual_income" placeholder="e.g., 50" step="1" min="0">
+        <br>
+        <label for="spending_score">Spending Score (1-100):</label>
+        <input type="number" id="spending_score" placeholder="e.g., 60" step="1" min="1" max="100">
+        <br>
+        <button onclick="predictCustomerType()">Predict Customer Type</button>
+        <h3 id="customer-type-result"></h3>
+        <p id="customer-type-message"></p>
+        <button onclick="predictKMeans()">Cluster Customers</button>
+        <h3 id="kmeans-result"></h3>
+        <div id="kmeans-plot"></div>
+    </div>
+
+    <!-- Digit Prediction Form (Updated as Deep Learning) -->
+    <div id="digit" class="form-container">
+        <h2>Digit Prediction</h2>
+        <label for="digit-input">Upload an Image (28x28 grayscale):</label>
+        <input type="file" id="digit-input" accept="image/*" onchange="handleImageUpload(event)">
+        <button onclick="predictDigit()">Predict Digit</button>
+        <h3 id="digit-result"></h3>
+        <div id="digit-image"></div>
+    </div>
+
+    <script>
+        // Function to display the correct model form
+        function showForm(model) {
+            document.querySelectorAll('.form-container').forEach(form => {
+                form.classList.remove('active');
+            });
+            document.getElementById(model).classList.add('active');
+        }
+
+        // Linear Regression Prediction
+        async function predictLinear() {
+            const years = document.getElementById('years').value;
+            const response = await fetch('http://127.0.0.1:5000/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ years_experience: parseFloat(years) })
+            });
+            const result = await response.json();
+            document.getElementById('linear-result').innerText = `Predicted Salary: $${result.predicted_salary}`;
+
+            // Fetch the plot and display it
+            const plotResponse = await fetch('http://127.0.0.1:5000/plot');
+            const plotData = await plotResponse.json();
+            const plotImage = "data:image/png;base64," + plotData.plot;
+            const imgElement = document.createElement("img");
+            imgElement.src = plotImage;
+            document.getElementById('plot').innerHTML = '';
+            document.getElementById('plot').appendChild(imgElement);
+        }
+
+        // K-Means Customer Type Prediction
+        async function predictCustomerType() {
+            const income = document.getElementById('annual_income').value;
+            const score = document.getElementById('spending_score').value;
+
+            if (!income || !score) {
+                alert("Please enter both Annual Income and Spending Score.");
+                return;
+            }
+
+            const response = await fetch("http://127.0.0.1:5000/predict_customer_type", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ annual_income: parseFloat(income), spending_score: parseFloat(score) })
+            });
+
+            const result = await response.json();
+
+            if (result.error) {
+                alert("Error: " + result.error);
+            } else {
+                document.getElementById('customer-type-result').innerText = `Customer Type: ${result.customer_type}`;
+                document.getElementById('customer-type-message').innerText = result.message;
+            }
+        }
+
+        // K-Means Clustering Prediction and Plot
+        async function predictKMeans() {
+            const response = await fetch('http://127.0.0.1:5000/kmeans', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const result = await response.json();
+
+            document.getElementById('kmeans-result').innerText = `Clusters Computed Successfully!`;
+
+            // Display the K-Means plot
+            const imgElement = document.createElement("img");
+            imgElement.src = "data:image/png;base64," + result.plot;
+            document.getElementById('kmeans-plot').innerHTML = '';
+            document.getElementById('kmeans-plot').appendChild(imgElement);
+        }
+
+        // Handle image upload and convert it to base64
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = function () {
+                    document.getElementById('digit-image').innerHTML = `<img src="${reader.result}" alt="Uploaded Image" width="100">`;
+                    window.base64Image = (reader.result.split(',')[0], reader.result.split(',')[1]); // Store base64 string
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Predict digit using the uploaded image
+        async function predictDigit() {
+    if (!window.base64Image) {
+        alert("Please upload an image.");
+        return;
+    }
+
+    const response = await fetch('http://127.0.0.1:5000/predict_digit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: window.base64Image })
+    });
+
+    const result = await response.json();
+    console.log(result);  // Log the response to inspect it
+
+    if (result.predicted_digit !== undefined) {
+        document.getElementById('digit-result').innerText = `Predicted Digit: ${result.predicted_digit}`;
+    } else {
+        document.getElementById('digit-result').innerText = "Prediction failed!";
+    }
+}
+
+    </script>
+</body>
+</html>
